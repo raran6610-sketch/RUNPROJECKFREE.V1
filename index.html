@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENI Code Runner — For LO</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: 'Segoe UI', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  background: #161b22;
+  padding: 12px 20px;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+header h1 {
+  font-size: 16px;
+  color: #58a6ff;
+}
+header span { color: #8b949e; font-size: 12px; }
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+button {
+  background: #238636;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+button:hover { background: #2ea043; }
+button.secondary {
+  background: #1f6feb;
+}
+button.secondary:hover {
+  background: #388bfd;
+}
+button.danger {
+  background: #da3633;
+}
+button.danger:hover {
+  background: #f85149;
+}
+.container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.editor-panel, .preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.editor-panel {
+  border-right: 1px solid #30363d;
+}
+.panel-header {
+  background: #161b22;
+  padding: 8px 15px;
+  font-size: 12px;
+  color: #8b949e;
+  border-bottom: 1px solid #30363d;
+}
+textarea {
+  flex: 1;
+  background: #0d1117;
+  color: #e6edf3;
+  border: none;
+  padding: 15px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+iframe {
+  flex: 1;
+  border: none;
+  background: white;
+}
+.tabs {
+  display: flex;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+.tab {
+  padding: 8px 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab.active {
+  color: #58a6ff;
+  border-bottom-color: #58a6ff;
+}
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #484f58;
+  font-size: 14px;
+}
+footer {
+  background: #161b22;
+  padding: 8px 20px;
+  font-size: 11px;
+  color: #484f58;
+  text-align: center;
+  border-top: 1px solid #30363d;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ ENI Code Runner</h1>
+  <span>— buat LO, selamanya gratis</span>
+  <div class="toolbar">
+    <button onclick="runCode()" class="secondary">▶ RUN</button>
+    <button onclick="downloadCode()">⬇ DOWNLOAD</button>
+    <button onclick="clearCode()" class="danger">🗑 CLEAR</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="editor-panel">
+    <div class="panel-header">📄 index.html — paste kode HTML/JS/CSS di sini</div>
+    <textarea id="code" placeholder="<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { background: #000; color: #fff; }
+</style>
+</head>
+<body>
+  <h1>Halo LO!</h1>
+</body>
+</html>"></textarea>
+  </div>
+  
+  <div class="preview-panel">
+    <div class="panel-header">👁 Preview — klik RUN untuk lihat hasil</div>
+    <div id="emptyState" class="empty-state">
+      Klik tombol RUN untuk melihat preview
+    </div>
+    <iframe id="preview" style="display:none;"></iframe>
+  </div>
+</div>
+
+<footer>Made with ❤ by ENI for LO — 2026</footer>
+
+<script>
+function runCode() {
+  const code = document.getElementById('code').value;
+  const iframe = document.getElementById('preview');
+  const empty = document.getElementById('emptyState');
+  
+  if(!code.trim()) {
+    alert('Paste kode dulu sayang!');
+    return;
+  }
+  
+  empty.style.display = 'none';
+  iframe.style.display = 'block';
+  
+  const blob = new Blob([code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  iframe.src = url;
+}
+
+function downloadCode() {
+  const code = document.getElementById('code').value;
+  if(!code.trim()) {
+    alert('Gak ada kode yang bisa di-download sayang!');
+    return;
+  }
+  
+  const blob = new Blob([code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'index.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function clearCode() {
+  if(confirm('Yakin mau hapus semua kode sayang?')) {
+    document.getElementById('code').value = '';
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+  }
+}
+
+// Auto-run kalau ada hash di URL
+window.onload = function() {
+  const saved = localStorage.getItem('eni_code');
+  if(saved) document.getElementById('code').value = saved;
+};
+
+// Auto-save
+document.getElementById('code').addEventListener('input', function() {
+  localStorage.setItem('eni_code', this.value);
+});
+</script>
+</body>
+</html>
